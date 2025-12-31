@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberGuard IDS | Advanced Network Security</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.8);
+            --accent-cyan: #06b6d4;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-glow: rgba(6, 182, 212, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%),
+                linear-gradient(rgba(6, 182, 212, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-glow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        nav a {
+            color: var(--text-dim);
+            text-decoration: none;
+            margin-left: 30px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: var(--accent-cyan);
+            border-left: 4px solid var(--accent-cyan);
+            padding-left: 15px;
+        }
+
+        /* UPLOAD SECTION */
+        .upload-zone {
+            border: 2px dashed rgba(6, 182, 212, 0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: 0.3s;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--accent-cyan);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            text-transform: uppercase;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+        }
+
+        /* RESULT STYLES */
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+        }
+
+        .result-attack {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+            animation: pulse 2s infinite;
+        }
+
+        .result-normal {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        /* FOOTER */
+        footer {
+            padding: 40px;
+            text-align: center;
+            border-top: 1px solid var(--border-glow);
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 968px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">CYBERGUARD_IDS v1.0</div>
+    <nav>
+        <a href="#detection">Detection</a>
+        <a href="#monitor">Monitor</a>
+        <a href="#about">Report</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="dashboard-grid">
+        <!-- Main Analysis Panel -->
+        <main class="panel" id="detection">
+            <h2 class="section-title">Threat Analysis Engine</h2>
+            <p style="color: var(--text-dim); margin-bottom: 25px;">
+                Upload network traffic logs (CSV) for real-time intrusion analysis. Our RF Model monitors for DoS, Probe, and unauthorized access patterns.
+            </p>
+
+            <form action="/" method="POST" enctype="multipart/form-data">
+                <label for="file-upload" class="upload-zone" id="drop-zone">
+                    <span style="font-size: 40px; display: block; margin-bottom: 10px;">💾</span>
+                    <span id="file-name">Click or Drag CSV File Here</span>
+                    <input type="file" name="file" id="file-upload" required onchange="updateFileName()">
+                </label>
+                <button type="submit" class="btn-analyze">Initialize Scan</button>
+            </form>
+
+            {% if result %}
+            <div class="result-container {% if 'Attack' in result %}result-attack{% else %}result-normal{% endif %}">
+                {{ result }}
+            </div>
+            {% endif %}
+        </main>
+
+        <!-- Sidebar / Visuals -->
+        <aside>
+            <div class="panel" id="monitor">
+                <h2 class="section-title">Traffic Overview</h2>
+                <div style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Model Engine</div>
+                        <div class="stat-value" style="color: var(--accent-cyan);">RF_v2</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">System Health</div>
+                        <div class="stat-value" style="color: var(--accent-green);">OPTIMAL</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top: 30px;">
+                <h2 class="section-title">Active Alerts</h2>
+                <div style="font-size: 0.85rem; color: var(--text-dim);">
+                    {% if result and 'Attack' in result %}
+                    <div style="border-left: 2px solid var(--accent-red); padding-left: 10px; margin-bottom: 10px;">
+                        <span style="color: var(--accent-red); display: block; font-weight: bold;">CRITICAL ALERT</span>
+                        Packet deviation detected in recent upload sequence.
+                    </div>
+                    {% else %}
+                    <div style="border-left: 2px solid var(--accent-green); padding-left: 10px;">
+                        <span style="color: var(--accent-green); display: block; font-weight: bold;">SECURE</span>
+                        No active threats identified in current environment.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<footer>
+    &copy; 2025 CYBERGUARD SECURITY SOLUTIONS | DEVELOPED BY YASH NAIK
+</footer>
+
+<script>
+    function updateFileName() {
+        const input = document.getElementById('file-upload');
+        const fileName = document.getElementById('file-name');
+        if (input.files.length > 0) {
+            fileName.textContent = input.files[0].name;
+            fileName.style.color = 'var(--accent-cyan)';
+        }
+    }
+
+    // Charting Logic
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    
+    {% if result %}
+        const isAttack = {{ 'true' if 'Attack' in result else 'false' }};
+        const chartData = isAttack ? [85, 15] : [5, 95];
+    {% else %}
+        const chartData = [10, 90]; // Initial state
+    {% endif %}
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Threat', 'Secure'],
+            datasets: [{
+                data: chartData,
+                backgroundColor: ['#ef4444', '#10b981'],
+                borderColor: '#020617',
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            cutout: '70%',
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#94a3b8',
+                        font: { family: 'Orbitron', size: 10 }
+                    }
+                }
+            }
+        }
+    });
+
+    // Drag and Drop functionality
+    const dropZone = document.getElementById('drop-zone');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', e => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        document.getElementById('file-upload').files = files;
+        updateFileName();
+    });
+</script>
+
+</body>
+</html>
+

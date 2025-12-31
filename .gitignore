@@ -1,0 +1,34 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# ML models & encoders
+*.pkl
+*.joblib
+*.sav
+
+# Datasets
+*.csv
+*.xlsx
+*.zip
+
+# Logs & outputs
+*.log
+results/
+outputs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/

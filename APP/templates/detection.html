@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetaShield Dashboard | Predictive Security Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-deep: #000000;
+            --neon-blue: #00f2ff;
+            --neon-green: #00ff41;
+            --neon-red: #ff3131;
+            --panel-bg: rgba(15, 15, 15, 0.95);
+            --border-glow: rgba(0, 242, 255, 0.15);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand-text,
+        .btn-scan {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 15px 0;
+            background: #000;
+            border-bottom: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--neon-blue) !important;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        .btn-portal {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .btn-portal:hover {
+            color: var(--neon-green);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-container {
+            padding: 40px 0;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            padding: 30px;
+            position: relative;
+            height: 100%;
+        }
+
+        .panel-header {
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-glow);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Advanced Upload Area */
+        .upload-section {
+            border: 2px dashed rgba(0, 242, 255, 0.2);
+            padding: 50px 30px;
+            text-align: center;
+            transition: 0.4s;
+            cursor: pointer;
+            margin-bottom: 30px;
+            position: relative;
+            background: rgba(0, 242, 255, 0.02);
+        }
+
+        .upload-section:hover,
+        .upload-section.dragover {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 65, 0.05);
+            box-shadow: inset 0 0 20px rgba(0, 255, 65, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: var(--neon-blue);
+            margin-bottom: 20px;
+            transition: 0.4s;
+        }
+
+        .upload-section:hover .upload-icon {
+            color: var(--neon-green);
+            transform: scale(1.1);
+        }
+
+        #file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-scan {
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            transition: 0.4s;
+        }
+
+        .btn-scan:hover {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
+        /* Result Styles */
+        .result-box {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid transparent;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-attack {
+            background: rgba(255, 49, 49, 0.1);
+            color: var(--neon-red);
+            border-color: var(--neon-red);
+            box-shadow: 0 0 20px rgba(255, 49, 49, 0.2);
+        }
+
+        .result-normal {
+            background: rgba(0, 255, 65, 0.1);
+            color: var(--neon-green);
+            border-color: var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading Screen */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .scanner-line {
+            width: 300px;
+            height: 4px;
+            background: var(--neon-blue);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .scanner-line::after {
+            content: '';
+            position: absolute;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--neon-green);
+            animation: scan 1.5s infinite linear;
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        @keyframes scan {
+            100% {
+                left: 100%;
+            }
+        }
+
+        /* Stats & Charts */
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--neon-blue);
+        }
+
+        .metric-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--neon-green);
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+        }
+
+        footer {
+            padding: 30px 0;
+            text-align: center;
+            color: #444;
+            font-size: 0.8rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="scanner-line mb-4"></div>
+        <div class="brand-text fs-4 text-info">ANALYZING NETWORK SIGNATURES...</div>
+        <div class="small text-muted mt-2">DEPLOYING MACHINE LEARNING NEURAL GATES</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container d-flex justify-content-between">
+            <a class="navbar-brand" href="/">NETASHIELD_IDS</a>
+            <a href="/" class="btn-portal"><i class="bi bi-arrow-left"></i> BACK TO PORTAL</a>
+        </div>
+    </nav>
+
+    <div class="container dashboard-container">
+        <div class="row g-4">
+            <!-- Input Area -->
+            <div class="col-lg-7">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span><i class="bi bi-terminal me-2"></i> THREAT_DASHBOARD_V2</span>
+                        <span class="status-badge">SECURE_LINK_ESTABLISHED</span>
+                    </div>
+
+                    <h2 class="brand-text fs-5 mb-4 text-info">TRAFFIC SCANNER</h2>
+                    <p class="text-muted small mb-4">Input raw network packet CSV logs for instant behavioral analysis.
+                        Our RF Engine identifies deviations from standard traffic protocols.</p>
+
+                    <form id="scan-form" action="/detection" method="POST" enctype="multipart/form-data">
+                        <div class="upload-section" id="drop-zone">
+                            <i class="bi bi-shield-shaded upload-icon"></i>
+                            <div class="h5 brand-text" id="file-display-name">DRAG & DROP PACKET LOGS</div>
+                            <div class="text-muted small mt-2">OR CLICK TO BROWSE FILES</div>
+                            <input type="file" name="file" id="file-input" required onchange="updateFileName()">
+                        </div>
+                        <button type="submit" class="btn-scan">INITIALIZE NEURAL SCAN</button>
+                    </form>
+
+                    {% if result %}
+                    <div class="result-box {% if 'Attack' in result %}result-attack{% else %}result-normal{% endif %}">
+                        <div class="brand-text fs-5 mb-1">
+                            {% if 'Attack' in result %}
+                            <i class="bi bi-exclamation-octagon-fill me-2"></i> INTRUSION DETECTED
+                            {% else %}
+                            <i class="bi bi-shield-fill-check me-2"></i> TRAFFIC SECURE
+                            {% endif %}
+                        </div>
+                        <div class="small fw-bold opacity-75">{{ result }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Monitoring Sidebar -->
+            <div class="col-lg-5">
+                <div class="panel">
+                    <div class="panel-header">
+                        <span><i class="bi bi-broadcast me-2"></i> SYNERGY_MONITOR</span>
+                        <span class="text-info">98.2% ACCURACY</span>
+                    </div>
+
+                    <div class="text-center py-4">
+                        <div style="max-width: 280px; margin: 0 auto;">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <div class="metric-card">
+                            <div class="small text-muted text-uppercase mb-1">Model Engine</div>
+                            <div class="metric-value">RANDOM_FOREST_V2</div>
+                        </div>
+                        <div class="metric-card" style="border-left-color: var(--neon-green);">
+                            <div class="small text-muted text-uppercase mb-1">Neural Accuracy</div>
+                            <div class="metric-value text-info">98.27% <small
+                                    class="fs-6 opacity-50">KDD_OPTIMIZED</small></div>
+                        </div>
+                        <div class="metric-card" style="border-left-color: var(--neon-red);">
+                            <div class="small text-muted text-uppercase mb-1">System Latency</div>
+                            <div class="metric-value">12ms <small class="fs-6 opacity-50 text-muted">STABLE</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 alert border-info border-1 bg-transparent text-info small">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Neural scan utilizes weighted behavioral heuristics to minimize false positives during complex
+                        DoS detection.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            NETASHIELD IDS | DEVELOPED BY YASH NAIK | SECURING THE DIGITAL VOID &copy; 2025
+        </div>
+    </footer>
+
+    <script>
+        // File upload handler
+        function updateFileName() {
+            const input = document.getElementById('file-input');
+            const display = document.getElementById('file-display-name');
+            if (input.files.length > 0) {
+                display.innerText = input.files[0].name;
+                display.style.color = 'var(--neon-green)';
+            }
+        }
+
+        // Loading overlay trigger
+        document.getElementById('scan-form').onsubmit = function () {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        };
+
+        // Chart Configuration
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+
+        {% if result %}
+        const isAttack = {{ 'true' if 'Attack' in result else 'false' }};
+        const chartData = isAttack ? [85, 15] : [5, 95];
+        {% else %}
+        const chartData = [0, 0]; // Null/Standby state
+        {% endif %}
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Threats', 'Secure'],
+                datasets: [{
+                    data: chartData,
+                    backgroundColor: ['#ff3131', '#00ff41'],
+                    borderColor: '#000',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                cutout: '75%',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#a0a0a0',
+                            font: { family: 'Orbitron', size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        enabled: chartData[0] !== 0 || chartData[1] !== 0
+                    }
+                }
+            }
+        });
+
+        // Drag & Drop
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(name => {
+            dropZone.addEventListener(name, () => dropZone.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(name => {
+            dropZone.addEventListener(name, () => dropZone.classList.remove('dragover'), false);
+        });
+    </script>
+
+</body>
+
+</html>
